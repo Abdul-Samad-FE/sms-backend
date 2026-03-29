@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+sqlalchemy
+passlib[bcrypt]
+python-jose
+aiofiles
+httpx
+typing-extensions
