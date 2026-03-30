@@ -8,3 +8,4 @@ python-jose
 aiofiles
 httpx
 typing-extensions
+pymysql
