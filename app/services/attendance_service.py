@@ -9,7 +9,11 @@ from sqlalchemy.orm import Session
 from app.models.attendance import Attendance
 from app.repositories.attendance_repository import AttendanceRepository
 from app.repositories.base_repository import DuplicatedError, NotFoundError
-from app.schemas.attendance import AttendanceCreate, AttendanceUpdate
+from app.schemas.attendance import (
+    AttendanceBulkCreate,
+    AttendanceCreate,
+    AttendanceUpdate,
+)
 from app.services.base_service import BaseService
 
 
@@ -61,6 +65,14 @@ class AttendanceService(BaseService[Attendance]):
             return existing
         try:
             return self.attendance.create(payload)
+        except DuplicatedError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    def bulk_upsert(self, payload: AttendanceBulkCreate) -> List[Attendance]:
+        """Upsert a whole day's attendance for many students in one transaction."""
+        items = [(r.student_id, r.status, r.remarks) for r in payload.records]
+        try:
+            return self.attendance.bulk_upsert(payload.school_id, payload.date, items)
         except DuplicatedError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 

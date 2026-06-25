@@ -10,7 +10,13 @@ from app.core.audit import log_action
 from app.core.rbac import require_permission
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.attendance import AttendanceCreate, AttendanceRead, AttendanceUpdate
+from app.schemas.attendance import (
+    AttendanceBulkCreate,
+    AttendanceBulkResult,
+    AttendanceCreate,
+    AttendanceRead,
+    AttendanceUpdate,
+)
 from app.services.attendance_service import AttendanceService
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
@@ -72,6 +78,31 @@ def create_attendance(
         ip_address=request.client.host if request.client else None,
     )
     return record
+
+
+@router.post("/bulk", response_model=AttendanceBulkResult, status_code=201)
+def bulk_create_attendance(
+    payload: AttendanceBulkCreate,
+    request: Request,
+    current_user: User = Depends(require_permission("attendance:create")),
+    db: Session = Depends(get_db),
+):
+    """Mark a whole class/day's attendance in one atomic submission."""
+    if not current_user.is_superuser:
+        payload.school_id = current_user.school_id
+    records = AttendanceService(db).bulk_upsert(payload)
+    log_action(
+        db,
+        user_id=current_user.id,
+        action="bulk_upsert_attendance",
+        entity="attendance",
+        entity_id=None,
+        details={"date": str(payload.date), "count": len(records)},
+        ip_address=request.client.host if request.client else None,
+    )
+    return AttendanceBulkResult(
+        date=payload.date, processed=len(records), records=records
+    )
 
 
 @router.put("/{attendance_id}", response_model=AttendanceRead)

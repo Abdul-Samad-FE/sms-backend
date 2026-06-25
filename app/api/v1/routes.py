@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     attendance,
     auth,
     classes,
+    dashboard,
     schools,
     students,
     users,
@@ -20,4 +21,5 @@ api_router.include_router(schools.router)
 api_router.include_router(students.router)
 api_router.include_router(classes.router)
 api_router.include_router(attendance.router)
+api_router.include_router(dashboard.router)
 api_router.include_router(admin.router)
