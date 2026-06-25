@@ -15,3 +15,6 @@ venv.bak/
 # Editor
 .vscode/
 .idea/
+
+# Logs
+*.log

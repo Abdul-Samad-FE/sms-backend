@@ -1,44 +1,10 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+"""Backwards-compatible entry point.
 
-# Import Database Session and Base
-from app.db.session import engine, Base
+The application factory now lives in `app.main`. Prefer running the server with:
 
-# Import Routers
-from app.api.endpoints.user import router as users_router
-from app.api.endpoints.school import router as schools_router
-from app.api.endpoints.student import router as students_router
-from app.api.endpoints.class_api import router as classes_router
-from app.api.endpoints.attendance import router as attendance_router
+    uvicorn app.main:app --reload
 
-# Create tables in the database (SQLAlchemy will skip existing tables)
-Base.metadata.create_all(bind=engine)
+This shim keeps `uvicorn main:app` working for existing tooling.
+"""
 
-app = FastAPI(
-    title="School Management API",
-    description="Professional API for School Management System",
-    version="1.0.0"
-)
-
-# CORS Configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Register Routers
-app.include_router(schools_router)
-app.include_router(users_router)
-app.include_router(students_router)
-app.include_router(classes_router)
-app.include_router(attendance_router)
-
-@app.get("/health")
-async def health_check():
-    """
-    Health check endpoint to verify API status.
-    """
-    return {"status": "ok", "message": "School Management API is running"}
+from app.main import app, create_app  # noqa: F401

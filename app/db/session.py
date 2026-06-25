@@ -1,23 +1,26 @@
+"""Database engine, session factory, and the FastAPI session dependency.
+
+The connection string comes from `app.core.config.settings` so the DSN has a
+single source of truth across the app, the seeders, and Alembic migrations.
+"""
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
-from dotenv import load_dotenv
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-load_dotenv()
+from app.core.config import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost:3306/school_management")
+# `pool_pre_ping` transparently recycles connections dropped by the DB server
+# (common with MySQL's `wait_timeout`), avoiding stale-connection errors.
+engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 
-# Create SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
-
-# Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for models
+# Declarative base shared by every ORM model.
 Base = declarative_base()
 
-# Dependency to get db session
+
 def get_db():
+    """Yield a request-scoped SQLAlchemy session, closing it afterwards."""
     db = SessionLocal()
     try:
         yield db

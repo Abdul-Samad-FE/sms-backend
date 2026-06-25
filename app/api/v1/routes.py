@@ -1,0 +1,23 @@
+"""Aggregate all v1 endpoint routers under a single APIRouter."""
+
+from fastapi import APIRouter
+
+from app.api.v1.endpoints import (
+    admin,
+    attendance,
+    auth,
+    classes,
+    schools,
+    students,
+    users,
+)
+
+api_router = APIRouter()
+
+api_router.include_router(auth.router)
+api_router.include_router(users.router)
+api_router.include_router(schools.router)
+api_router.include_router(students.router)
+api_router.include_router(classes.router)
+api_router.include_router(attendance.router)
+api_router.include_router(admin.router)
